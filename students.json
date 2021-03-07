@@ -6,16 +6,18 @@
   "total_effort_hours" : 0,
   "students": [
     {
-      "name " : "Your Namewwwwww",
-      "pid"   : "Your StudentId",
-      "email" : "Your Email",
-      "os"    : "windows|mac|linux"
+
+     
+      "name " : "Zi",
+      "pid"   : "A12951892",
+      "email" : "zkdeng@eng.ucsd.edu",
+      "os"    : "mac"
     },
     {
-      "name " : "Partner Name (if any)",
-      "pid"   : "Partner StudentId (if any)",
-      "email" : "Partner Email (if any)",
-      "os"    : "windows|mac|linux"
+      "name " : "Zongcheng Wang (if any)",
+      "pid"   : "A53316647 (if any)",
+      "email" : "zow001@eng.ucsd.edu (if any)",
+      "os"    : "mac"
     },
   ]
 }
