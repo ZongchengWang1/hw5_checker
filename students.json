@@ -6,10 +6,10 @@
   "total_effort_hours" : 0,
   "students": [
     {
-      "name " : "Your Name",
-      "pid"   : "Your StudentId",
-      "email" : "Your Email",
-      "os"    : "windows|mac|linux"
+      "name " : "Zi",
+      "pid"   : "A12951892",
+      "email" : "zkdeng@eng.ucsd.edu",
+      "os"    : "mac"
     },
     {
       "name " : "Partner Name (if any)",
