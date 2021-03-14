@@ -31,6 +31,28 @@ namespace ECE141 {
          aGame.movePieceTo(*thePiece, Location(1,2)); -- choose wisely...
        }
       */
+		
+		// Create Neighborhood Function
+		if (pos == 1) {
+			if(const Piece *thePiece = aGame.getAvailablePiece(this->color, pos)) {
+			  std::cout << thePiece->getLocation().row << ", " <<thePiece->getLocation().col << "\n";
+			  Location PieceLocation = thePiece->getLocation();
+			  Location tile1(PieceLocation.col+1, PieceLocation.row+1);
+			  Location tile2(PieceLocation.col-1, PieceLocation.row-1);
+			  Location tile3(PieceLocation.col+1, PieceLocation.row-1);
+			  Location tile4(PieceLocation.col-1, PieceLocation.row+1);
+			  //aGame.movePieceTo(*thePiece, Location(4,3));
+			}
+		}
+//		if (pos == 1) {
+//			if(const Piece *thePiece = aGame.getAvailablePiece(this->color, pos)) {
+//			  std::cout << thePiece->hasColor(PieceColor::blue) << "\n";
+//			  std::cout << thePiece->getLocation().row << ", " <<thePiece->getLocation().col << "\n";
+//			  //add logic here to find your best move, then move ONE piece per turn...
+//
+//			  aGame.movePieceTo(*thePiece, Location(4,3));
+//			}
+//		}
     }
     return false; //if you return false, you forfeit!
   }
