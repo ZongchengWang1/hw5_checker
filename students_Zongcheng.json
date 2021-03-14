@@ -6,17 +6,19 @@
   "total_effort_hours" : 0,
   "students": [
     {
-
+        "name " : "Zongcheng Wang",
+        "pid"   : "A53316647 ",
+        "email" : "zow001@eng.ucsd.edu ",
+        "os"    : "mac"
      
+      
+    },
+    {
+     
+      
       "name " : "Zi",
       "pid"   : "A12951892",
       "email" : "zkdeng@eng.ucsd.edu",
-      "os"    : "mac"
-    },
-    {
-      "name " : "Zongcheng Wang (if any)",
-      "pid"   : "A53316647 (if any)",
-      "email" : "zow001@eng.ucsd.edu (if any)",
       "os"    : "mac"
     },
   ]
