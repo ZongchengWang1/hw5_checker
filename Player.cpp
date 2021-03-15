@@ -51,11 +51,11 @@ namespace ECE141 {
 	}
 
 	bool Player::threatExists(Game &aGame, Location &curLocation, Location &prevLocation) {
-		if (checkThreat(aGame, curLocation, prevLocation, -1, sign(color)*1)) {
+		if (checkThreat(aGame, curLocation, prevLocation, sign(color)*1, sign(color)*1)) {
 			return true;
 		}
 		
-		if (checkThreat(aGame, curLocation, prevLocation, 1, sign(color)*1)) {
+		if (checkThreat(aGame, curLocation, prevLocation, sign(color)*-1, sign(color)*1)) {
 			return true;
 		}
 		
@@ -63,7 +63,7 @@ namespace ECE141 {
 		if(const Tile* enemyTile = aGame.getTileAt(enemyLocation)) {
 			if(const Piece* enemyPiece = enemyTile->getPiece()) {
 				if(enemyPiece->getKind() == PieceKind::king) {
-					if (checkThreat(aGame, curLocation, prevLocation, -1, sign(color)*-1)) {
+					if (checkThreat(aGame, curLocation, prevLocation, sign(color)*1, sign(color)*-1)) {
 						return true;
 					}
 				}
@@ -73,7 +73,7 @@ namespace ECE141 {
 		if(const Tile* enemyTile2 = aGame.getTileAt(enemyLocation2)) {
 			if(const Piece* enemyPiece2 = enemyTile2->getPiece()){
 				if(enemyPiece2->getKind() == PieceKind::king) {
-					if (checkThreat(aGame, curLocation, prevLocation, 1, sign(color)*-1)) {
+					if (checkThreat(aGame, curLocation, prevLocation, sign(color)*-1, sign(color)*-1)) {
 						return true;
 					}
 				}
@@ -156,6 +156,12 @@ namespace ECE141 {
 		
 		Location curLocation = aPiece.getLocation();
 		
+		if (curLocation.col+colOff > 7 || curLocation.col+colOff < 0 ) {
+			return -1000;
+		} else if ((curLocation.row+rowOff > 7 || curLocation.row+rowOff < 0 )) {
+			return -1000;
+		}
+		
 		if (checkJump(aGame, curLocation, locations, colOff, rowOff)) {
 			rating += 100;
 			Location adjLocation(curLocation.row+rowOff, curLocation.col+colOff);
@@ -163,16 +169,22 @@ namespace ECE141 {
 			
 			Location jumpLocation(adjLocation.row+rowOff, adjLocation.col+colOff);
 			
+			if (jumpLocation.col > 7 || jumpLocation.col < 0 ) {
+				return -1000;
+			} else if ((jumpLocation.row > 7 || jumpLocation.row < 0 )) {
+				return -1000;
+			}
+			
 			PieceKind pieceKind = aPiece.getKind();
 			twoInts ints = jumpExists(aGame, jumpLocation, locations, pieceKind, color);
 			while (ints.runCond == true) {
-				ints = jumpExists(aGame, jumpLocation, locations, aPiece.getKind(), color);
+				ints = jumpExists(aGame, jumpLocation, locations, pieceKind, color);
 				Location newAdj(jumpLocation.row+ints.row, jumpLocation.col+ints.col);
 				locations.push_back(newAdj);
 				jumpLocation.row += 2*ints.row;
 				jumpLocation.col += 2*ints.col;
 				rating += 100;
-				if (aPiece.getKind() != PieceKind::king && checkKing(aGame, aPiece, jumpLocation)) {
+				if (pieceKind != PieceKind::king && checkKing(aGame, aPiece, jumpLocation)) {
 					pieceKind = PieceKind::king;
 					rating += 20;
 				}
@@ -180,7 +192,7 @@ namespace ECE141 {
 		} else {
 			Location below(-1, -1);
 			if (threatExists(aGame, curLocation, below)) {
-				rating += 25;
+				rating += 20;
 			}
 			
 			Location nextLocation(curLocation.row+rowOff, curLocation.col+colOff);
@@ -194,9 +206,9 @@ namespace ECE141 {
 					
 					if (threatExists(aGame, nextLocation, curLocation)) {
 						rating -= 20;
+					} else {
+						rating += 10;
 					}
-					rating += 10;
-					
 				} else {
 					return -1000;
 				}
@@ -264,6 +276,7 @@ namespace ECE141 {
 						} else {
 							moveLocation = new Location(aPiece->getLocation().row+sign(color)*-1, aPiece->getLocation().col+sign(color)*-1);
 						}
+						
 						Move newMove(*moveLocation, aPiece, rating);
 						moves.push_back(newMove);
 					}
@@ -274,7 +287,7 @@ namespace ECE141 {
 			return false; //if you return false, you forfeit!
 		}
 		
-		int bestRating = 0;
+		int bestRating = -2000;
 		int curRating = 0;
 		//Move bestMove = moves[0];
 		for (auto move : moves) {
@@ -303,9 +316,11 @@ namespace ECE141 {
 		while (bestMove.rating >= 100 &&
 			   (ints.runCond == true)) {
 			ints = jumpExists(aGame, bestMove.endLocation, locs, bestMove.piece->getKind(), color);
-			bestMove.endLocation.row += 2 * ints.row;
-			bestMove.endLocation.col += 2 * ints.col;
-			aGame.movePieceTo(*(bestMove.piece), bestMove.endLocation);
+			if (ints.col != 0 && ints.row != 0) {
+				bestMove.endLocation.row += 2 * ints.row;
+				bestMove.endLocation.col += 2 * ints.col;
+				aGame.movePieceTo(*(bestMove.piece), bestMove.endLocation);
+			}
 		}
 		return true;
 	}
