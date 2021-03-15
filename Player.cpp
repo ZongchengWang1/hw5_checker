@@ -32,11 +32,9 @@ namespace ECE141 {
 	bool Player::checkThreat(Game &aGame, Location &curLocation, Location &prevLocation, int colOff, int rowOff) {
 		Location nextLocation(curLocation.row+rowOff, curLocation.col+colOff);
 		const Tile *nextTile = aGame.getTileAt(nextLocation);
-		const Tile *curTile = aGame.getTileAt(curLocation);
 		if (nextTile) {
 			const Piece* enemyPiece = nextTile->getPiece();
-			const Piece* curPiece = curTile->getPiece();
-			if (enemyPiece && (enemyPiece->getColor()) != curPiece->getColor()) {
+			if (enemyPiece && !enemyPiece->hasColor(color)) {
 				Location jumpThreat(curLocation.row-rowOff, curLocation.col-colOff);
 				const Tile *jumpThreatTile = aGame.getTileAt(jumpThreat);
 				if (jumpThreatTile) {
@@ -63,21 +61,21 @@ namespace ECE141 {
 		
 		Location enemyLocation(-1, sign(color)-1);
 		if(const Tile* enemyTile = aGame.getTileAt(enemyLocation)) {
-			const Piece* enemyPiece = enemyTile->getPiece();
-			
-			if(enemyPiece->getKind() == PieceKind::king) {
-				if (checkThreat(aGame, curLocation, prevLocation, -1, sign(color)*-1)) {
-					return true;
+			if(const Piece* enemyPiece = enemyTile->getPiece()) {
+				if(enemyPiece->getKind() == PieceKind::king) {
+					if (checkThreat(aGame, curLocation, prevLocation, -1, sign(color)*-1)) {
+						return true;
+					}
 				}
 			}
 		}
 		Location enemyLocation2(1, sign(color)-1);
 		if(const Tile* enemyTile2 = aGame.getTileAt(enemyLocation2)) {
-			const Piece* enemyPiece2 = enemyTile2->getPiece();
-			
-			if(enemyPiece2->getKind() == PieceKind::king) {
-				if (checkThreat(aGame, curLocation, prevLocation, 1, sign(color)*-1)) {
-					return true;
+			if(const Piece* enemyPiece2 = enemyTile2->getPiece()){
+				if(enemyPiece2->getKind() == PieceKind::king) {
+					if (checkThreat(aGame, curLocation, prevLocation, 1, sign(color)*-1)) {
+						return true;
+					}
 				}
 			}
 		}
@@ -97,7 +95,7 @@ namespace ECE141 {
 				}
 			}
 			
-			if (nextPiece && !locationCheck && nextPiece->hasColor(color)) {
+			if (nextPiece && !locationCheck && !nextPiece->hasColor(color)) {
 				Location jumpLocation(nextLocation.row+rowOff, nextLocation.col+colOff);
 				const Tile *jumpTile = aGame.getTileAt(jumpLocation);
 				if (jumpTile) {
@@ -290,8 +288,16 @@ namespace ECE141 {
 		}
 		
 		aGame.movePieceTo(*(bestMove.piece), bestMove.endLocation);
-		//std::cout << "test\n";
-		
+
+		std::vector<Location> locs;
+		twoInts ints = jumpExists(aGame, bestMove.endLocation, locs, bestMove.piece->getKind(), color);
+		while (bestMove.rating >= 100 &&
+			   (ints.runCond == true)) {
+			twoInts ints = jumpExists(aGame, bestMove.endLocation, locs, bestMove.piece->getKind(), color);
+			bestMove.endLocation.row += 2 * ints.row;
+			bestMove.endLocation.col += 2 * ints.col;
+			aGame.movePieceTo(*(bestMove.piece), bestMove.endLocation);
+		}
 		return true;
 	}
 }
