@@ -35,6 +35,8 @@ public:
     static int pcount; //how many pieces created so far
     virtual bool takeTurn(Game &aGame, Orientation aDirection, std::ostream &aLog);
     
+//    std::vector<int> testoptions ;
+    
 protected:
     bool isKingable(Game &aGame, const Piece &aPiece, const Location &aLocation);//变成canbeking//inplemented
     int moveScore(Game &aGame, const Piece &aPiece, int aDeltaX, int aDeltaY);
@@ -45,7 +47,8 @@ protected:
 
     Location* pieceHasJump(Game &aGame, const PieceKind pk, const Location &aLoc, PieceColor aColor, std::vector<Location> locs);
     
-    std::vector<MoveOption> &neiberhood(Game &aGame, Orientation aDirection, std::ostream &aLog);
+    bool neiberhood(Game &aGame, Orientation aDirection, std::ostream &aLog,std::vector<MoveOption> &options);
+//    bool neiberhoodtest(Game &aGame, Orientation aDirection, std::ostream &aLog, std::vector<int> &testoptions);
 
     
     

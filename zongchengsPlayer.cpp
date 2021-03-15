@@ -30,10 +30,10 @@ const Piece* ZongchengsPlayer::isOpponent(Game &aGame, const Location &aLoc, int
     if (const Tile *theTile=aGame.getTileAt(near)){
         const Piece* const thePiece=theTile->getPiece();
         if(thePiece && !thePiece->hasColor(color)) {
-            std::cout << "cur loc: " <<  aLoc.row << " " << aLoc.col << std::endl;
-            std::cout << "opponent: " <<  thePiece->getLocation().row << " " << thePiece->getLocation().col << std::endl;
+//            std::cout << "cur loc: " <<  aLoc.row << " " << aLoc.col << std::endl;
+//            std::cout << "opponent: " <<  thePiece->getLocation().row << " " << thePiece->getLocation().col << std::endl;
             Location theJump(aLoc.row-aDeltaY,aLoc.col-aDeltaX);
-            std::cout << "jump: " <<  theJump.row << " " << theJump.col << std::endl;
+//            std::cout << "jump: " <<  theJump.row << " " << theJump.col << std::endl;
             const Tile *jumpTile=aGame.getTileAt(theJump);
             if (jumpTile != nullptr) {
                 const Piece* const jumpPiece=jumpTile->getPiece();
@@ -180,11 +180,12 @@ int ZongchengsPlayer::lessY(PieceColor aColor) {return PieceColor::blue==aColor 
 int ZongchengsPlayer::moreX(PieceColor aColor) {return PieceColor::blue==aColor ? 1 : -1;}
 int ZongchengsPlayer::lessX(PieceColor aColor) {return PieceColor::blue==aColor ? -1 : 1;}
 
-std::vector<MoveOption> &ZongchengsPlayer::neiberhood(Game &aGame, Orientation aDirection, std::ostream &aLog){
+bool ZongchengsPlayer::neiberhood(Game &aGame, Orientation aDirection, std::ostream &aLog,std::vector<MoveOption> &options){
     
+    options.clear();
     size_t theCount = aGame.countAvailablePieces(color);
-    std::vector<MoveOption> options1;
-    std::vector<MoveOption> &options = options1;
+//    std::vector<MoveOption> options1;
+//    std::vector<MoveOption> &options = options1;
     for (int pos = 0; pos < theCount; pos++) {
         //NOTICE HOW WE CHECK FOR CAPTURED PIECES?
         if (const Piece *thePiece = aGame.getAvailablePiece(this->color, pos)) {
@@ -198,10 +199,10 @@ std::vector<MoveOption> &ZongchengsPlayer::neiberhood(Game &aGame, Orientation a
                     newLoc = new Location(thePiece->getLocation().row + moreY(color),
                                           thePiece->getLocation().col + lessX(color));
 
-                std::cout << "old location:" << thePiece->getLocation().row << " " << thePiece->getLocation().col
-                          << std::endl;
-                std::cout << "new location:" << newLoc->row << " " << newLoc->col << std::endl;
-                std::cout << "score:" << score << std::endl;
+//                std::cout << "old location:" << thePiece->getLocation().row << " " << thePiece->getLocation().col
+//                          << std::endl;
+//                std::cout << "new location:" << newLoc->row << " " << newLoc->col << std::endl;
+//                std::cout << "score:" << score << std::endl;
                 MoveOption newMove(thePiece, *newLoc, score);
                 options.push_back(newMove);
             }
@@ -215,10 +216,10 @@ std::vector<MoveOption> &ZongchengsPlayer::neiberhood(Game &aGame, Orientation a
                     newLoc = new Location(thePiece->getLocation().row + moreY(color),
                                           thePiece->getLocation().col + moreX(color));
 
-                std::cout << "old location:" << thePiece->getLocation().row << " " << thePiece->getLocation().col
-                          << std::endl;
-                std::cout << "new location:" << newLoc->row << " " << newLoc->col << std::endl;
-                std::cout << "score:" << score << std::endl;
+//                std::cout << "old location:" << thePiece->getLocation().row << " " << thePiece->getLocation().col
+//                          << std::endl;
+//                std::cout << "new location:" << newLoc->row << " " << newLoc->col << std::endl;
+//                std::cout << "score:" << score << std::endl;
                 MoveOption newMove(thePiece, *newLoc, score);
                 options.push_back(newMove);
             }
@@ -259,9 +260,16 @@ std::vector<MoveOption> &ZongchengsPlayer::neiberhood(Game &aGame, Orientation a
     
     
     
-    return options;
+    return true;
     
 }
+
+//bool ZongchengsPlayer::neiberhoodtest(Game &aGame, Orientation aDirection, std::ostream &aLog, std::vector<int> &testoptions){
+////    std::vector<int> testoptions1;
+//    testoptions.push_back(3);
+////    std::vector<int> &testoptions = testoptions1;
+//    return true;
+//}
 
 bool ZongchengsPlayer:: takeTurn(Game &aGame, Orientation aDirection, std::ostream &aLog){
     
@@ -280,7 +288,12 @@ bool ZongchengsPlayer:: takeTurn(Game &aGame, Orientation aDirection, std::ostre
 //            }
 //        }
 //    }
-    std::vector<MoveOption> &options = neiberhood(aGame, aDirection, aLog);
+    std::vector<MoveOption> options;
+    bool getMO= neiberhood(aGame, aDirection, aLog,options);
+//    std::vector<int> testoptions;
+
+//    bool getnt = neiberhoodtest(aGame, aDirection, aLog,testoptions);
+
     
     
     
@@ -300,9 +313,9 @@ bool ZongchengsPlayer:: takeTurn(Game &aGame, Orientation aDirection, std::ostre
     int rand = std::rand() % index;
     MoveOption maxMove = options[rand];
 
-    std::cout << "------ turn:" << static_cast<std::underlying_type<PieceColor>::type>(color) << " "
-              << maxMove.piece->getLocation().row << maxMove.piece->getLocation().col << " " << maxMove.location.row
-              << maxMove.location.col << std::endl;
+//    std::cout << "------ turn:" << static_cast<std::underlying_type<PieceColor>::type>(color) << " "
+//              << maxMove.piece->getLocation().row << maxMove.piece->getLocation().col << " " << maxMove.location.row
+//              << maxMove.location.col << std::endl;
     aGame.movePieceTo(*(maxMove.piece), maxMove.location);
 
     Location *change;
@@ -313,7 +326,7 @@ bool ZongchengsPlayer:: takeTurn(Game &aGame, Orientation aDirection, std::ostre
         maxMove.location.col += 2 * change->col;
         aGame.movePieceTo(*(maxMove.piece), maxMove.location);
     }
-    std::cout << "end" << std::endl;
+//    std::cout << "end" << std::endl;
     return true;
     
    
