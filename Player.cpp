@@ -157,7 +157,7 @@ namespace ECE141 {
 		Location curLocation = aPiece.getLocation();
 		
 		if (checkJump(aGame, curLocation, locations, colOff, rowOff)) {
-			rating = rating + 100;
+			rating += 100;
 			Location adjLocation(curLocation.row+rowOff, curLocation.col+colOff);
 			locations.push_back(adjLocation);
 			
@@ -180,7 +180,7 @@ namespace ECE141 {
 		} else {
 			Location below(-1, -1);
 			if (threatExists(aGame, curLocation, below)) {
-				rating += 20;
+				rating += 25;
 			}
 			
 			Location nextLocation(curLocation.row+rowOff, curLocation.col+colOff);
@@ -195,7 +195,6 @@ namespace ECE141 {
 					if (threatExists(aGame, nextLocation, curLocation)) {
 						rating -= 20;
 					}
-					
 					rating += 10;
 					
 				} else {
@@ -265,7 +264,6 @@ namespace ECE141 {
 						} else {
 							moveLocation = new Location(aPiece->getLocation().row+sign(color)*-1, aPiece->getLocation().col+sign(color)*-1);
 						}
-						
 						Move newMove(*moveLocation, aPiece, rating);
 						moves.push_back(newMove);
 					}
@@ -278,14 +276,25 @@ namespace ECE141 {
 		
 		int bestRating = 0;
 		int curRating = 0;
-		Move bestMove = moves[0];
+		//Move bestMove = moves[0];
 		for (auto move : moves) {
 			curRating = move.rating;
 			if (curRating > bestRating) {
 				bestRating = curRating;
-				bestMove = move;
+				//bestMove = move;
 			}
 		}
+		
+		std::vector<Move> bestMoves;
+		for (auto move: moves) {
+			if (move.rating == bestRating) {
+				bestMoves.push_back(move);
+			}
+		}
+		
+		int numMoves = (int)bestMoves.size();
+		int random = std::rand() % numMoves;
+		Move bestMove = bestMoves[random];
 		
 		aGame.movePieceTo(*(bestMove.piece), bestMove.endLocation);
 
@@ -293,7 +302,7 @@ namespace ECE141 {
 		twoInts ints = jumpExists(aGame, bestMove.endLocation, locs, bestMove.piece->getKind(), color);
 		while (bestMove.rating >= 100 &&
 			   (ints.runCond == true)) {
-			twoInts ints = jumpExists(aGame, bestMove.endLocation, locs, bestMove.piece->getKind(), color);
+			ints = jumpExists(aGame, bestMove.endLocation, locs, bestMove.piece->getKind(), color);
 			bestMove.endLocation.row += 2 * ints.row;
 			bestMove.endLocation.col += 2 * ints.col;
 			aGame.movePieceTo(*(bestMove.piece), bestMove.endLocation);
