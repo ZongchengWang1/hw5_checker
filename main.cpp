@@ -10,46 +10,62 @@
 #include <sstream>
 #include "Game.hpp"
 #include "Player.hpp"
+//#include "ZZ_Player.hpp"
+//student -- include your player class here...
 
-//STUDENT: include your own playere file here
-//         (named after you, like "RenjiePlayer")...
-//         Use your player below, instead of the default Player class
+size_t runTest(ECE141::Reasons aReason, std::ostream &anOutput) {
+  size_t theCount=5;
+  for(size_t theIndex=0;theIndex<5;theIndex++) {
 
-std::ostream& getOutput() {return std::cout;}
+	//STUDENT: include your own playere file here
+	//         (named after you, like "RenjiePlayer")...
+	//         Use your player below, instead of the default Player class
+
+	ECE141::Player player1;  //Use your own player class here...
+	ECE141::Player player2;  //Make two players from YOUR player class
+
+	anOutput << "Run: " << theIndex << "\n";
+	auto theResult=ECE141::Game::run(player1, player2, anOutput);
+	if(aReason==theResult) theCount--;
+  }
+  return theCount;
+}
 
 int main(int argc, const char * argv[]) {
-  
-  const char* theStatus[]={"FAIL","PASS"};
-        
+		  
   // insert code here...
   if(argc>1) {
-    
-    ECE141::Player player1;  //Use your own player class here...
-    ECE141::Player player2;  //Make two players from YOUR player class
-    
-    std::stringstream theStream;
-    
-    srand(static_cast<uint32_t>(time(0)));
-    std::string temp(argv[1]);
-    
-    if("compile"==temp) {
-      std::cout << "Compile test PASS\n";
-    }
-    else if("win"==temp) {
-      std::cout << "Win test ";
-      auto theResult=ECE141::Game::run(player1, player2, theStream);
-      std::cout << theStatus[ECE141::Reasons::eliminated==theResult];
-      std::cout << "\n" << theStream.str() << "\n";
-    }
-    else if ("piece"==temp) {
-      std::cout << "Piece test FAIL\n";
-    }
-    else if ("move"==temp) {
-      std::cout << "Move test FAIL\n";
-    }
-    else if ("choice"==temp) {
-      std::cout << "Choice test FAIL\n";
-    }
+  
+	const char* theStatus[]={"FAIL","PASS"};
+
+	srand(static_cast<uint32_t>(time(0)));
+	
+	std::string temp(argv[1]);
+	std::stringstream theStream;
+
+	if("compile"==temp) {
+	  std::cout << "Compile test PASS\n";
+	}
+	else if("win"==temp) {
+	  size_t theCount=runTest(ECE141::Reasons::eliminated, theStream);
+	  std::cout << "Win test " << theStatus[theCount!=5] << "\n";
+	  std::cout << "\n" << theStream.str() << "\n";
+	}
+	else if ("move"==temp) {
+	  size_t theCount=runTest(ECE141::Reasons::badmove, theStream);
+	  std::cout << "Move test " << theStatus[theCount==5] << "\n";
+	  std::cout << "\n" << theStream.str() << "\n";
+	}
+	else if ("piece"==temp) {
+	  size_t theCount=runTest(ECE141::Reasons::moved2, theStream);
+	  std::cout << "Piece test " << theStatus[theCount==5] << "\n";
+	  std::cout << "\n" << theStream.str() << "\n";
+	}
+	else if ("choice"==temp) {
+	  size_t theCount=runTest(ECE141::Reasons::missedJump, theStream);
+	  std::cout << "Choice test " << theStatus[theCount==5] << "\n";
+	  std::cout << "\n" << theStream.str() << "\n";
+	}
   }
   
   return 0;

@@ -8,106 +8,290 @@
 
 #include "Player.hpp"
 #include "Game.hpp"
-//#include "Move.hpp"
-//#include <vector>
+#include <algorithm>
 
 namespace ECE141 {
   
-  int Player::pcount = 0; //init our static member to track # of players...
+	int Player::pcount = 0; //init our static member to track # of players...
+
+	static PieceColor autoColor() { //auto assigns a color
+		return (++Player::pcount % 2) ? PieceColor::blue : PieceColor::gold;
+	}
   
-  static PieceColor autoColor() { //auto assigns a color
-    return (++Player::pcount % 2) ? PieceColor::blue : PieceColor::gold;
-  }
-  
-  Player::Player() : color(autoColor()) {};
+	Player::Player() : color(autoColor()) {}
 
-  bool Player::checkSpace(Game &aGame, const Piece *thePiece, std::vector<Move*> &possibleMoves, int colOff, int rowOff) {
-	  Location PieceLocation = thePiece->getLocation();
-	  Move aMove;
-
-	  //Top right case
-
-	  Location tempLocation(PieceLocation.row+rowOff, PieceLocation.col+colOff);
-
-	  if (tempLocation.col < 0 || tempLocation.col > 7) {
-		  return false;
-	  } else if (tempLocation.row < 0 || tempLocation.row > 7) {
-		  return false;
-	  }
-
-	  const Tile *tempTile = aGame.getTileAt(tempLocation);
-
-	  if (tempTile->getPiece()) {
-		  //Consider jump case
-		  Location tempLocation2(tempLocation.row+rowOff, tempLocation.col+colOff);
-		  const Tile *tempTile2 = aGame.getTileAt(tempLocation2);
-		  if (tempTile2->getPiece()) {
-			  return false;
-		  } else {
-			  if (tempLocation2.row == 0 && thePiece->getKind() != PieceKind::king) {
-				  aMove.willKing = true;
-			  }
-
-			  aMove.Jumps++;
-
-			  aMove.willConquer = true;
-
-			  aMove.startLocation = Location(PieceLocation.row, PieceLocation.col);
-			  aMove.endLocation = Location(tempLocation2.row, tempLocation2.col);
-
-			  //possibleMoves.push_back(&aMove);
-			  Move* moveCopy = new Move;
-			  moveCopy = &aMove;
-			  possibleMoves.push_back(moveCopy);
-		  }
-	  } else {
-		  if (tempLocation.row == 0 && thePiece->getKind() != PieceKind::king) {
-			  aMove.willKing = true;
-		  }
-
-		  aMove.startLocation = Location(PieceLocation.row, PieceLocation.col);
-		  aMove.endLocation = Location(tempLocation.row, tempLocation.col);
-
-//		  Event* eventCopy = new Event;
-//		  *eventCopy = *anEvent;
-//
-//		  events.push_back(eventCopy);
-		  Move* moveCopy = new Move;
-		  moveCopy = &aMove;
-		  possibleMoves.push_back(moveCopy);
-		  //possibleMoves.push_back(&aMove);
-	  }
-	  return true;
-  }
-
+	int Player::sign(PieceColor color) {
+		if (color == PieceColor::blue) {
+			return -1;
+		} else if (color == PieceColor::gold) {
+			return 1;
+		}
+		return 0;
+	}
 	
-  bool Player::takeTurn(Game &aGame, Orientation aDirection, std::ostream &aLog) {
-    size_t theCount=aGame.countAvailablePieces(color);
-    for(int pos=0;pos<theCount;pos++) {
-		// Create Neighborhood Function
-		if (pos == 1) {
-			
-			std::vector<std::vector<Move*>*> allMoves;
-			if (const Piece *thePiece = aGame.getAvailablePiece(this->color, pos)) {
-				
-				
-				std::vector<Move*> possibleMoves;
-				
-				int dir = (this->color == PieceColor::blue) ? -1 : 1;
-				
-				checkSpace(aGame, thePiece, possibleMoves, 1, dir * 1);
-				checkSpace(aGame, thePiece, possibleMoves, -1, dir * 1);
-				if (thePiece->getKind() == PieceKind::king) {
-					checkSpace(aGame, thePiece, possibleMoves, 1, dir * -1);
-					checkSpace(aGame, thePiece, possibleMoves, -1, dir * -1);
+	bool Player::checkThreat(Game &aGame, Location &curLocation, Location &prevLocation, int colOff, int rowOff) {
+		Location nextLocation(curLocation.row+rowOff, curLocation.col+colOff);
+		const Tile *nextTile = aGame.getTileAt(nextLocation);
+		const Tile *curTile = aGame.getTileAt(curLocation);
+		if (nextTile) {
+			const Piece* enemyPiece = nextTile->getPiece();
+			const Piece* curPiece = curTile->getPiece();
+			if (enemyPiece && (enemyPiece->getColor()) != curPiece->getColor()) {
+				Location jumpThreat(curLocation.row-rowOff, curLocation.col-colOff);
+				const Tile *jumpThreatTile = aGame.getTileAt(jumpThreat);
+				if (jumpThreatTile) {
+					const Piece* jumpThreatPiece = jumpThreatTile->getPiece();
+					if (jumpThreatPiece && (jumpThreat.col != prevLocation.col || jumpThreat.row != prevLocation.row)) {
+						return false;
+					} else {
+						return true;
+					}
 				}
-				
-				
-				//allMoves.push_back(&possibleMoves);
-				std::cout << "test" << "\n";
 			}
 		}
-    }
-    return false; //if you return false, you forfeit!
-  }
+		return false;
+	}
+
+	bool Player::threatExists(Game &aGame, Location &curLocation, Location &prevLocation) {
+		if (checkThreat(aGame, curLocation, prevLocation, -1, sign(color)*1)) {
+			return true;
+		}
+		
+		if (checkThreat(aGame, curLocation, prevLocation, 1, sign(color)*1)) {
+			return true;
+		}
+		
+		Location enemyLocation(-1, sign(color)-1);
+		if(const Tile* enemyTile = aGame.getTileAt(enemyLocation)) {
+			const Piece* enemyPiece = enemyTile->getPiece();
+			
+			if(enemyPiece->getKind() == PieceKind::king) {
+				if (checkThreat(aGame, curLocation, prevLocation, -1, sign(color)*-1)) {
+					return true;
+				}
+			}
+		}
+		Location enemyLocation2(1, sign(color)-1);
+		if(const Tile* enemyTile2 = aGame.getTileAt(enemyLocation2)) {
+			const Piece* enemyPiece2 = enemyTile2->getPiece();
+			
+			if(enemyPiece2->getKind() == PieceKind::king) {
+				if (checkThreat(aGame, curLocation, prevLocation, 1, sign(color)*-1)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	};
+
+	bool Player::checkJump(Game &aGame, Location &curLocation, std::vector<Location> locations, int colOff, int rowOff) {
+		Location nextLocation(curLocation.row+rowOff, curLocation.col+colOff);
+		const Tile* nextTile = aGame.getTileAt(nextLocation);
+		if (nextTile) {
+			const Piece* nextPiece = nextTile->getPiece();
+			bool locationCheck = false;
+			
+			for (Location check : locations){
+				if ((nextLocation.row == check.row) && (nextLocation.col == check.col)) {
+					locationCheck = true;
+				}
+			}
+			
+			if (nextPiece && !locationCheck && nextPiece->hasColor(color)) {
+				Location jumpLocation(nextLocation.row+rowOff, nextLocation.col+colOff);
+				const Tile *jumpTile = aGame.getTileAt(jumpLocation);
+				if (jumpTile) {
+					return jumpTile->getPiece()==nullptr;
+				}
+			}
+		}
+		return false;
+	}
+
+	twoInts Player::jumpExists(Game &aGame, Location &curLocation, std::vector<Location> locations, PieceKind kind, PieceColor color) {
+		twoInts ints;
+		if(checkJump(aGame, curLocation, locations, sign(color)*1, sign(color)*1)) {
+			ints.row = sign(color)*1;
+			ints.col = sign(color)*1;
+			return ints;
+		}
+		
+		if(checkJump(aGame, curLocation, locations, sign(color)*-1, sign(color)*1)) {
+			ints.row = sign(color)*1;
+			ints.col = sign(color)*-1;
+			return ints;
+		}
+		
+		if (kind == PieceKind::king) {
+			if(checkJump(aGame, curLocation, locations, sign(color)*1, sign(color)*-1)) {
+				ints.row = sign(color)*-1;
+				ints.col = sign(color)*1;
+				return ints;
+			}
+			
+			if(checkJump(aGame, curLocation, locations, sign(color)*-1, sign(color)*-1)) {
+				ints.row = sign(color)*-1;
+				ints.col = sign(color)*-1;
+				return ints;
+			}
+		}
+		ints.row = 0;
+		ints.col = 0;
+		ints.runCond = false;
+		return ints;
+	}
+ 
+	bool Player::checkKing(Game &aGame, const Piece &aPiece, Location &nextLocation) {
+		if (aPiece.getKind() == PieceKind::pawn) {
+			if (color == PieceColor::blue) {
+				return (nextLocation.row == 0);
+			} else if (color == PieceColor::gold) {
+				return (nextLocation.row == 7);
+			}
+		}
+		return false;
+	}
+
+	int Player::rateMove(Game &aGame, const Piece &aPiece, int colOff, int rowOff) {
+		std::vector<Location> locations;
+		int rating = 0;
+		
+		Location curLocation = aPiece.getLocation();
+		
+		if (checkJump(aGame, curLocation, locations, colOff, rowOff)) {
+			rating = rating + 100;
+			Location adjLocation(curLocation.row+rowOff, curLocation.col+colOff);
+			locations.push_back(adjLocation);
+			
+			Location jumpLocation(adjLocation.row+rowOff, adjLocation.col+colOff);
+			
+			PieceKind pieceKind = aPiece.getKind();
+			twoInts ints = jumpExists(aGame, jumpLocation, locations, pieceKind, color);
+			while (ints.runCond == true) {
+				ints = jumpExists(aGame, jumpLocation, locations, aPiece.getKind(), color);
+				Location newAdj(jumpLocation.row+ints.row, jumpLocation.col+ints.col);
+				locations.push_back(newAdj);
+				jumpLocation.row += 2*ints.row;
+				jumpLocation.col += 2*ints.col;
+				rating += 100;
+				if (aPiece.getKind() != PieceKind::king && checkKing(aGame, aPiece, jumpLocation)) {
+					pieceKind = PieceKind::king;
+					rating += 20;
+				}
+			}
+		} else {
+			Location below(-1, -1);
+			if (threatExists(aGame, curLocation, below)) {
+				rating += 20;
+			}
+			
+			Location nextLocation(curLocation.row+rowOff, curLocation.col+colOff);
+			const Tile *nextTile = aGame.getTileAt(nextLocation);
+			if (nextTile) {
+				const Piece* nextPiece = nextTile->getPiece();
+				if (!nextPiece) {
+					if (checkKing(aGame, aPiece, nextLocation)) {
+						rating += 30;
+					}
+					
+					if (threatExists(aGame, nextLocation, curLocation)) {
+						rating -= 20;
+					}
+					
+					rating += 10;
+					
+				} else {
+					return -1000;
+				}
+			} else {
+				return -1000;
+			}
+			
+		}
+		return rating;
+	}
+
+
+	bool Player::takeTurn(Game &aGame, Orientation aDirection, std::ostream &aLog) {
+		size_t theCount=aGame.countAvailablePieces(color);
+		
+		std::vector<Move> moves;
+		for(int pos=0;pos<theCount;pos++) {
+			const Piece *aPiece = aGame.getAvailablePiece(this->color, pos);
+			if (aPiece) {
+				// Case 1
+				int rating = rateMove(aGame, *aPiece, sign(color)*1, sign(color)*1);
+				if (rating != -1000) {
+					Location *moveLocation;
+					if (rating >= 100) {
+						moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*1, aPiece->getLocation().col+2*sign(color)*1);
+					} else {
+						moveLocation = new Location(aPiece->getLocation().row+sign(color)*1, aPiece->getLocation().col+sign(color)*1);
+					}
+					
+					Move newMove(*moveLocation, aPiece, rating);
+					moves.push_back(newMove);
+				}
+				
+				rating = rateMove(aGame, *aPiece, sign(color)*-1, sign(color)*1);
+				if (rating != -1000) {
+					Location *moveLocation;
+					if (rating >= 100) {
+						moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*1, aPiece->getLocation().col+2*sign(color)*-1);
+					} else {
+						moveLocation = new Location(aPiece->getLocation().row+sign(color)*1, aPiece->getLocation().col+sign(color)*-1);
+					}
+					
+					Move newMove(*moveLocation, aPiece, rating);
+					moves.push_back(newMove);
+				}
+
+				if (aPiece->getKind() == PieceKind::king) {
+					rating = rateMove(aGame, *aPiece, sign(color)*1, sign(color)*-1);
+					if (rating != -1000) {
+						Location *moveLocation;
+						if (rating >= 100) {
+							moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*-1, aPiece->getLocation().col+2*sign(color)*1);
+						} else {
+							moveLocation = new Location(aPiece->getLocation().row+sign(color)*-1, aPiece->getLocation().col+sign(color)*1);
+						}
+						
+						Move newMove(*moveLocation, aPiece, rating);
+						moves.push_back(newMove);
+					}
+					
+					if (rating != -1000) {
+						Location *moveLocation;
+						if (rating >= 100) {
+							moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*-1, aPiece->getLocation().col+2*sign(color)*-1);
+						} else {
+							moveLocation = new Location(aPiece->getLocation().row+sign(color)*-1, aPiece->getLocation().col+sign(color)*-1);
+						}
+						
+						Move newMove(*moveLocation, aPiece, rating);
+						moves.push_back(newMove);
+					}
+				}
+			}
+		}
+		if (moves.size() == 0) {
+			return false; //if you return false, you forfeit!
+		}
+		
+		int bestRating = 0;
+		int curRating = 0;
+		Move bestMove = moves[0];
+		for (auto move : moves) {
+			curRating = move.rating;
+			if (curRating > bestRating) {
+				bestRating = curRating;
+				bestMove = move;
+			}
+		}
+		
+		aGame.movePieceTo(*(bestMove.piece), bestMove.endLocation);
+		//std::cout << "test\n";
+		
+		return true;
+	}
 }
