@@ -319,9 +319,6 @@ namespace ECE141 {
           return true; //slide...
         }
       }
-        
-        bool needtoReturn = false;
-        std::cout<<needtoReturn<<"----------------------------------------------------------\n";
       return false;
     }
     
