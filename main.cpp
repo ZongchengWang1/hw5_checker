@@ -10,6 +10,8 @@
 #include <sstream>
 #include "Game.hpp"
 #include "Player.hpp"
+#include "ZZPlayer.hpp"
+
 //#include "ZZ_Player.hpp"
 //student -- include your player class here...
 
@@ -21,8 +23,8 @@ size_t runTest(ECE141::Reasons aReason, std::ostream &anOutput) {
 	//         (named after you, like "RenjiePlayer")...
 	//         Use your player below, instead of the default Player class
 
-	ECE141::Player player1;  //Use your own player class here...
-	ECE141::Player player2;  //Make two players from YOUR player class
+	ECE141::ZZPlayer player1;  //Use your own player class here...
+	ECE141::ZZPlayer player2;  //Make two players from YOUR player class
 
 	anOutput << "Run: " << theIndex << "\n";
 	auto theResult=ECE141::Game::run(player1, player2, anOutput);
