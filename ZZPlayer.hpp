@@ -49,6 +49,8 @@ namespace ECE141 {
     public:
                           ZZPlayer();
         virtual bool      takeTurn(Game &aGame, Orientation aDirection, std::ostream &aLog);
+        bool neiberhood(Game &aGame, Orientation aDirection, std::ostream &aLog,std::vector<Move> &moves);
+
         const PieceColor  color;
         static int        pcount; //how many created so far?
         
@@ -63,6 +65,7 @@ namespace ECE141 {
         bool checkKing(Game &aGame, const Piece &aPiece, Location &nextLocation);
         
         int rateMove(Game &aGame, const Piece &aPiece, int colOff, int rowOff);
+        
     };
 
 }

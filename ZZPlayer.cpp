@@ -227,70 +227,95 @@ namespace ECE141 {
         return rating;
     }
 
+bool ZZPlayer::neiberhood(Game &aGame, Orientation aDirection, std::ostream &aLog,std::vector<Move> &moves){
+    
+    moves.clear();
+    size_t theCount = aGame.countAvailablePieces(color);
+//    std::vector<MoveOption> options1;
+//    std::vector<MoveOption> &options = options1;
+    for (int pos = 0; pos < theCount; pos++) {
+        //NOTICE HOW WE CHECK FOR CAPTURED PIECES?
+        if (const Piece *aPiece = aGame.getAvailablePiece(this->color, pos)) {
+            int rating = rateMove(aGame, *aPiece, sign(color)*1, sign(color)*1);
+            if (rating != -1000) {
+                Location *moveLocation;
+                if (rating >= 100)
+                    moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*1,
+                                                aPiece->getLocation().col+2*sign(color)*1);
+                else
+                    moveLocation = new Location(aPiece->getLocation().row+sign(color)*1,
+                                                aPiece->getLocation().col+sign(color)*1);
 
-    bool ZZPlayer::takeTurn(Game &aGame, Orientation aDirection, std::ostream &aLog) {
-        size_t theCount=aGame.countAvailablePieces(color);
-        
-        std::vector<Move> moves;
-        for(int pos=0;pos<theCount;pos++) {
-            const Piece *aPiece = aGame.getAvailablePiece(this->color, pos);
-            if (aPiece) {
-                // Case 1
-                int rating = rateMove(aGame, *aPiece, sign(color)*1, sign(color)*1);
+//                std::cout << "old location:" << thePiece->getLocation().row << " " << thePiece->getLocation().col
+//                          << std::endl;
+//                std::cout << "new location:" << newLoc->row << " " << newLoc->col << std::endl;
+//                std::cout << "score:" << score << std::endl;
+                Move newMove( *moveLocation,aPiece, rating);
+                moves.push_back(newMove);
+            }
+            
+            rating = rateMove(aGame, *aPiece, sign(color)*-1, sign(color)*1);
+
+            if (rating != -1000) {
+                Location *moveLocation;
+                if (rating >= 100)
+                    moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*1,
+                                                aPiece->getLocation().col+2*sign(color)*-1);
+                else
+                    moveLocation = new Location(aPiece->getLocation().row+sign(color)*1, aPiece->getLocation().col+sign(color)*-1);
+
+//                std::cout << "old location:" << thePiece->getLocation().row << " " << thePiece->getLocation().col
+//                          << std::endl;
+//                std::cout << "new location:" << newLoc->row << " " << newLoc->col << std::endl;
+//                std::cout << "score:" << score << std::endl;
+                Move newMove(*moveLocation, aPiece, rating);
+                moves.push_back(newMove);
+            }
+
+            if (PieceKind::king == aPiece->getKind()) {
+                rating = rateMove(aGame, *aPiece, sign(color)*1, sign(color)*-1);
                 if (rating != -1000) {
                     Location *moveLocation;
-                    if (rating >= 100) {
-                        moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*1, aPiece->getLocation().col+2*sign(color)*1);
-                    } else {
-                        moveLocation = new Location(aPiece->getLocation().row+sign(color)*1, aPiece->getLocation().col+sign(color)*1);
-                    }
-                    
+                    if (rating >= 100)
+                        moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*-1, aPiece->getLocation().col+2*sign(color)*1);
+                    else
+                        moveLocation = new Location(aPiece->getLocation().row+sign(color)*-1, aPiece->getLocation().col+sign(color)*1);
+
                     Move newMove(*moveLocation, aPiece, rating);
                     moves.push_back(newMove);
                 }
                 
-                rating = rateMove(aGame, *aPiece, sign(color)*-1, sign(color)*1);
+                rating = rateMove(aGame, *aPiece, sign(color)*-1, sign(color)*-1);
                 if (rating != -1000) {
                     Location *moveLocation;
-                    if (rating >= 100) {
-                        moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*1, aPiece->getLocation().col+2*sign(color)*-1);
-                    } else {
-                        moveLocation = new Location(aPiece->getLocation().row+sign(color)*1, aPiece->getLocation().col+sign(color)*-1);
-                    }
-                    
+                    if (rating >= 100)
+                        moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*-1, aPiece->getLocation().col+2*sign(color)*-1);
+                    else
+                        moveLocation = new Location(aPiece->getLocation().row+sign(color)*-1, aPiece->getLocation().col+sign(color)*-1);
+
                     Move newMove(*moveLocation, aPiece, rating);
                     moves.push_back(newMove);
                 }
-
-                if (aPiece->getKind() == PieceKind::king) {
-                    rating = rateMove(aGame, *aPiece, sign(color)*1, sign(color)*-1);
-                    if (rating != -1000) {
-                        Location *moveLocation;
-                        if (rating >= 100) {
-                            moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*-1, aPiece->getLocation().col+2*sign(color)*1);
-                        } else {
-                            moveLocation = new Location(aPiece->getLocation().row+sign(color)*-1, aPiece->getLocation().col+sign(color)*1);
-                        }
-                        
-                        Move newMove(*moveLocation, aPiece, rating);
-                        moves.push_back(newMove);
-                    }
-                    
-                    rating = rateMove(aGame, *aPiece, sign(color)*-1, sign(color)*-1);
-                    if (rating != -1000) {
-                        Location *moveLocation;
-                        if (rating >= 100) {
-                            moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*-1, aPiece->getLocation().col+2*sign(color)*-1);
-                        } else {
-                            moveLocation = new Location(aPiece->getLocation().row+sign(color)*-1, aPiece->getLocation().col+sign(color)*-1);
-                        }
-                        
-                        Move newMove(*moveLocation, aPiece, rating);
-                        moves.push_back(newMove);
-                    }
-                }
             }
+
         }
+    }
+    
+    
+    
+    
+    
+    
+    return true;
+    
+}
+
+
+    bool ZZPlayer::takeTurn(Game &aGame, Orientation aDirection, std::ostream &aLog) {
+        std::vector<Move> moves;
+        bool getMO= neiberhood(aGame, aDirection, aLog,moves);
+        
+        
         if (moves.size() == 0) {
             return false; //if you return false, you forfeit!
         }
