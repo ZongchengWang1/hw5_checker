@@ -9,6 +9,13 @@
 #include "Game.hpp"
 #include <algorithm>
 
+#define ILLEGALMOVE  -1000
+#define DEFAULTBESTRATING -2000
+#define JUMPBONUS 100
+#define KINGBONUS 50
+#define ESCAPEBONUS 20
+#define SAFEBONUS 10
+
 namespace ECE141 {
   
     int ZZPlayer::pcount = 0; //init our static member to track # of ZZPlayers...
@@ -164,22 +171,22 @@ namespace ECE141 {
         Location curLocation = aPiece.getLocation();
         
         if (curLocation.col+colOff > 7 || curLocation.col+colOff < 0 ) {
-            return -1000;
+            return ILLEGALMOVE;
         } else if ((curLocation.row+rowOff > 7 || curLocation.row+rowOff < 0 )) {
-            return -1000;
+            return ILLEGALMOVE;
         }
         
         if (checkJump(aGame, curLocation, locations, colOff, rowOff)) {
-            rating += 100;
+            rating += JUMPBONUS;
             Location adjLocation(curLocation.row+rowOff, curLocation.col+colOff);
             locations.push_back(adjLocation);
             
             Location jumpLocation(adjLocation.row+rowOff, adjLocation.col+colOff);
             
             if (jumpLocation.col > 7 || jumpLocation.col < 0 ) {
-                return -1000;
+                return ILLEGALMOVE;
             } else if ((jumpLocation.row > 7 || jumpLocation.row < 0 )) {
-                return -1000;
+                return ILLEGALMOVE;
             }
             
             PieceKind pieceKind = aPiece.getKind();
@@ -190,16 +197,16 @@ namespace ECE141 {
                 locations.push_back(newAdj);
                 jumpLocation.row += 2*ints.row;
                 jumpLocation.col += 2*ints.col;
-                rating += 100;
+                rating += JUMPBONUS;
                 if (pieceKind != PieceKind::king && checkKing(aGame, aPiece, jumpLocation)) {
                     pieceKind = PieceKind::king;
-                    rating += 20;
+                    rating += KINGBONUS;
                 }
             }
         } else {
             Location below(-1, -1);
             if (threatExists(aGame, curLocation, below)) {
-                rating += 20;
+                rating += ESCAPEBONUS;
             }
             
             Location nextLocation(curLocation.row+rowOff, curLocation.col+colOff);
@@ -208,19 +215,19 @@ namespace ECE141 {
                 const Piece* nextPiece = nextTile->getPiece();
                 if (!nextPiece) {
                     if (checkKing(aGame, aPiece, nextLocation)) {
-                        rating += 30;
+                        rating += KINGBONUS;
                     }
                     
                     if (threatExists(aGame, nextLocation, curLocation)) {
-                        rating -= 20;
+                        rating -= ESCAPEBONUS;
                     } else {
-                        rating += 10;
+                        rating += SAFEBONUS;
                     }
                 } else {
-                    return -1000;
+                    return ILLEGALMOVE;
                 }
             } else {
-                return -1000;
+                return ILLEGALMOVE;
             }
             
         }
@@ -237,9 +244,9 @@ bool ZZPlayer::neiberhood(Game &aGame, Orientation aDirection, std::ostream &aLo
         //NOTICE HOW WE CHECK FOR CAPTURED PIECES?
         if (const Piece *aPiece = aGame.getAvailablePiece(this->color, pos)) {
             int rating = rateMove(aGame, *aPiece, sign(color)*1, sign(color)*1);
-            if (rating != -1000) {
+            if (rating != ILLEGALMOVE) {
                 Location *moveLocation;
-                if (rating >= 100)
+                if (rating >= JUMPBONUS)
                     moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*1,
                                                 aPiece->getLocation().col+2*sign(color)*1);
                 else
@@ -256,9 +263,9 @@ bool ZZPlayer::neiberhood(Game &aGame, Orientation aDirection, std::ostream &aLo
             
             rating = rateMove(aGame, *aPiece, sign(color)*-1, sign(color)*1);
 
-            if (rating != -1000) {
+            if (rating != ILLEGALMOVE) {
                 Location *moveLocation;
-                if (rating >= 100)
+                if (rating >= JUMPBONUS)
                     moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*1,
                                                 aPiece->getLocation().col+2*sign(color)*-1);
                 else
@@ -274,9 +281,9 @@ bool ZZPlayer::neiberhood(Game &aGame, Orientation aDirection, std::ostream &aLo
 
             if (PieceKind::king == aPiece->getKind()) {
                 rating = rateMove(aGame, *aPiece, sign(color)*1, sign(color)*-1);
-                if (rating != -1000) {
+                if (rating != ILLEGALMOVE) {
                     Location *moveLocation;
-                    if (rating >= 100)
+                    if (rating >= JUMPBONUS)
                         moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*-1, aPiece->getLocation().col+2*sign(color)*1);
                     else
                         moveLocation = new Location(aPiece->getLocation().row+sign(color)*-1, aPiece->getLocation().col+sign(color)*1);
@@ -286,9 +293,9 @@ bool ZZPlayer::neiberhood(Game &aGame, Orientation aDirection, std::ostream &aLo
                 }
                 
                 rating = rateMove(aGame, *aPiece, sign(color)*-1, sign(color)*-1);
-                if (rating != -1000) {
+                if (rating != ILLEGALMOVE) {
                     Location *moveLocation;
-                    if (rating >= 100)
+                    if (rating >= JUMPBONUS)
                         moveLocation = new Location(aPiece->getLocation().row+2*sign(color)*-1, aPiece->getLocation().col+2*sign(color)*-1);
                     else
                         moveLocation = new Location(aPiece->getLocation().row+sign(color)*-1, aPiece->getLocation().col+sign(color)*-1);
@@ -320,7 +327,7 @@ bool ZZPlayer::neiberhood(Game &aGame, Orientation aDirection, std::ostream &aLo
             return false; //if you return false, you forfeit!
         }
         
-        int bestRating = -2000;
+        int bestRating = DEFAULTBESTRATING;
         int curRating = 0;
         
         for (auto move : moves) {
@@ -348,7 +355,7 @@ bool ZZPlayer::neiberhood(Game &aGame, Orientation aDirection, std::ostream &aLo
 
         std::vector<Location> locs;
         twoInts ints = jumpExists(aGame, bestMove.endLocation, locs, bestMove.piece->getKind(), color);
-        while (bestMove.rating >= 100 &&
+        while (bestMove.rating >= JUMPBONUS &&
                (ints.runCond == true)) {
             ints = jumpExists(aGame, bestMove.endLocation, locs, bestMove.piece->getKind(), color);
             if (ints.col != 0 && ints.row != 0) {
