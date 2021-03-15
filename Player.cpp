@@ -276,25 +276,39 @@ namespace ECE141 {
 		
 		int bestRating = 0;
 		int curRating = 0;
-		//Move bestMove = moves[0];
+		Move bestMove = moves[0];
 		for (auto move : moves) {
 			curRating = move.rating;
 			if (curRating > bestRating) {
 				bestRating = curRating;
-				//bestMove = move;
+				bestMove = move;
 			}
 		}
 		
-		std::vector<Move> bestMoves;
-		for (auto move: moves) {
-			if (move.rating == bestRating) {
-				bestMoves.push_back(move);
-			}
-		}
+//		std::vector<Move> bestMoves;
+//		for (auto move: moves) {
+//			if (move.rating == bestRating) {
+//				bestMoves.push_back(move);
+//			}
+//		}
+        
+        
 		
-		int numMoves = (int)bestMoves.size();
-		int random = std::rand() % numMoves;
-		Move bestMove = bestMoves[random];
+//		int numMoves = (int)bestMoves.size();
+//		int random = std::rand() % numMoves;
+//		Move bestMove = bestMoves[random];
+        
+        int total = 0;
+        
+        for(auto move :moves){
+            if(move.rating == bestRating ){
+                total ++;
+            }
+        }
+        
+        int rand = std::rand()%total;
+        bestMove = moves[rand];
+        
 		
 		aGame.movePieceTo(*(bestMove.piece), bestMove.endLocation);
 
