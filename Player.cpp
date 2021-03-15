@@ -84,6 +84,7 @@ namespace ECE141 {
 
 	bool Player::checkJump(Game &aGame, Location &curLocation, std::vector<Location> locations, int colOff, int rowOff) {
 		Location nextLocation(curLocation.row+rowOff, curLocation.col+colOff);
+		
 		const Tile* nextTile = aGame.getTileAt(nextLocation);
 		if (nextTile) {
 			const Piece* nextPiece = nextTile->getPiece();
@@ -97,6 +98,13 @@ namespace ECE141 {
 			
 			if (nextPiece && !locationCheck && !nextPiece->hasColor(color)) {
 				Location jumpLocation(nextLocation.row+rowOff, nextLocation.col+colOff);
+				
+				if (jumpLocation.col > 7 || jumpLocation.col < 0 ) {
+					return false;
+				} else if ((jumpLocation.row > 7 || jumpLocation.row < 0 )) {
+					return false;
+				}
+				
 				const Tile *jumpTile = aGame.getTileAt(jumpLocation);
 				if (jumpTile) {
 					return jumpTile->getPiece()==nullptr;
@@ -269,6 +277,7 @@ namespace ECE141 {
 						moves.push_back(newMove);
 					}
 					
+					rating = rateMove(aGame, *aPiece, sign(color)*-1, sign(color)*-1);
 					if (rating != -1000) {
 						Location *moveLocation;
 						if (rating >= 100) {
@@ -289,38 +298,26 @@ namespace ECE141 {
 		
 		int bestRating = -2000;
 		int curRating = 0;
-		Move bestMove = moves[0];
+		
 		for (auto move : moves) {
 			curRating = move.rating;
 			if (curRating > bestRating) {
 				bestRating = curRating;
-				bestMove = move;
 			}
 		}
 		
-//		std::vector<Move> bestMoves;
-//		for (auto move: moves) {
-//			if (move.rating == bestRating) {
-//				bestMoves.push_back(move);
-//			}
-//		}
+		std::vector<Move> bestMoves;
+		for (auto move: moves) {
+			if (move.rating == bestRating) {
+				bestMoves.push_back(move);
+			}
+		}
         
         
 		
-//		int numMoves = (int)bestMoves.size();
-//		int random = std::rand() % numMoves;
-//		Move bestMove = bestMoves[random];
-        
-        int total = 0;
-        
-        for(auto move :moves){
-            if(move.rating == bestRating ){
-                total ++;
-            }
-        }
-        
-        int rand = std::rand()%total;
-        bestMove = moves[rand];
+		int numMoves = (int)bestMoves.size();
+		int random = std::rand() % numMoves;
+		Move bestMove = bestMoves[random];
         
 		
 		aGame.movePieceTo(*(bestMove.piece), bestMove.endLocation);

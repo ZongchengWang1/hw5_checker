@@ -14,7 +14,7 @@
 //student -- include your player class here...
 
 size_t runTest(ECE141::Reasons aReason, std::ostream &anOutput) {
-  size_t theCount=0;
+  size_t theCount=5;
   for(size_t theIndex=0;theIndex<5;theIndex++) {
 
 	//STUDENT: include your own playere file here
