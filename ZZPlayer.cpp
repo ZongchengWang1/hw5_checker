@@ -12,7 +12,7 @@
 #define ILLEGALMOVE  -1000
 #define DEFAULTBESTRATING -2000
 #define JUMPBONUS 100
-#define KINGBONUS 50
+#define KINGBONUS 40
 #define ESCAPEBONUS 20
 #define SAFEBONUS 10
 
@@ -84,7 +84,7 @@ namespace ECE141 {
 		}
 		
         Location enemyLocation2(curLocation.row+sign(color)*-1, curLocation.col+sign(color)-1);
-		if (tileHasEnemyKing(aGame, enemyLocation)) {
+		if (tileHasEnemyKing(aGame, enemyLocation2)) {
 			if (checkThreat(aGame, curLocation, prevLocation, sign(color)*-1, sign(color)*-1)) {
 				return true;
 			}

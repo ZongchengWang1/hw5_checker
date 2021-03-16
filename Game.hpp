@@ -13,6 +13,7 @@
 #include "Piece.hpp"
 #include "stdio.h"
 #include <iostream>
+#include <functional>
 
 namespace ECE141 {
   
